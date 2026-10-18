@@ -36,7 +36,8 @@ After=network.target
 [Service]
 Type=simple
 User=$USER
-WorkingDirectory=$APP_DIR/server
+WorkingDirectory=$APP_DIR
+Environment=PYTHONPATH=$APP_DIR
 Environment=YUE2_STUB=1
 Environment=YUE2_DATA_DIR=$APP_DIR/server/data
 Environment=YUE2_PORT=$PORT
