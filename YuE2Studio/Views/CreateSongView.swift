@@ -132,6 +132,14 @@ private struct Disclosure<Label: View, Content: View>: View {
     @ViewBuilder var label: Label
     @ViewBuilder var content: Content
 
+    public init(isExpanded: Binding<Bool>,
+                @ViewBuilder label: () -> Label,
+                @ViewBuilder content: @escaping () -> Content) {
+        _isExpanded = isExpanded
+        self.label = label()
+        self.content = content()
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             label.font(.callout).foregroundStyle(Theme.accent)

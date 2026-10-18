@@ -1,12 +1,16 @@
 import SwiftUI
 
-/// 播放条：播放/暂停 + 进度 + 时间。播放服务来自全局环境。
+/// 播放条：播放/暂停 + 进度 + 时间。播放服务由外部注入（全局环境持有）。
 struct PlayerBar: View {
     let url: URL
     let headers: [String: String]
-    @EnvironmentObject private var environment: AppEnvironment
+    @ObservedObject var service: AudioPlayerService
 
-    private var service: AudioPlayerService { environment.player }
+    init(url: URL, headers: [String: String], service: AudioPlayerService) {
+        self.url = url
+        self.headers = headers
+        self.service = service
+    }
 
     var body: some View {
         VStack(spacing: 8) {
