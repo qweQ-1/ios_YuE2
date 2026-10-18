@@ -23,13 +23,15 @@ private final class StubURLProtocol: URLProtocol {
     override func stopLoading() {}
 }
 
+private let stubURL = URL(string: "https://stub.local/")!
+
 private func jsonResponse(_ obj: Any, status: Int = 200) -> (HTTPURLResponse, Data) {
-    (HTTPURLResponse(url: URL(string: "https://stub.local")!, statusCode: status, httpVersion: "1.1", headerFields: nil)!,
+    (HTTPURLResponse(url: stubURL, statusCode: status, httpVersion: "1.1", headerFields: nil)!,
      try! JSONSerialization.data(withJSONObject: obj))
 }
 
 private func rawResponse(_ str: String, status: Int = 200) -> (HTTPURLResponse, Data) {
-    (HTTPURLResponse(url: URL(string: "https://stub.local")!, statusCode: status, httpVersion: "1.1", headerFields: nil)!,
+    (HTTPURLResponse(url: stubURL, statusCode: status, httpVersion: "1.1", headerFields: nil)!,
      Data(str.utf8))
 }
 
@@ -75,7 +77,11 @@ final class YuE2ClientTests: XCTestCase {
             XCTAssertEqual(req.httpMethod, "POST")
             XCTAssertEqual(req.url?.path, "/api/generate")
             XCTAssertEqual(req.value(forHTTPHeaderField: "Content-Type"), "application/json")
-            let body = try! JSONSerialization.jsonObject(with: req.httpBody!) as! [String: Any]
+            guard let bodyData = req.httpBody else {
+                XCTFail("请求体丢失")
+                return jsonResponse(["job_id": "missing"], status: 500)
+            }
+            let body = (try? JSONSerialization.jsonObject(with: bodyData)) as? [String: Any] ?? [:]
             XCTAssertEqual(body["style"] as? String, "city pop")
             XCTAssertEqual(body["lyrics"] as? String, "[Verse]")
             XCTAssertEqual(body["cot"] as? String, "full")
