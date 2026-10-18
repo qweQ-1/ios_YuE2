@@ -35,6 +35,7 @@ public final class AppEnvironment: ObservableObject {
         JobsViewModel(clientProvider: { [weak self] in (self?.client() as YuE2Servicing?) ?? DeadClient() }, history: history)
     }()
 
+    @MainActor
     public func makeJobDetailViewModel(jobId: String) -> JobDetailViewModel {
         JobDetailViewModel(jobId: jobId, clientProvider: { [weak self] in (self?.client() as YuE2Servicing?) ?? DeadClient() }, history: history)
     }
