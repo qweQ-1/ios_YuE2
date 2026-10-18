@@ -62,23 +62,30 @@ struct CreateSongView: View {
                         Text(vm.cot.subtitle).font(.caption).foregroundStyle(.secondary)
 
                         if vm.cot.acceptsABC {
-                            Disclosure(isExpanded: $showABC) {
+                            Disclosure(isExpanded: $showABC,
+                                label: {
+                                Label(showABC ? "收起乐谱输入" : "使用已有 ABC 乐谱（可选）",
+                                      systemImage: showABC ? "chevron.up" : "chevron.down")
+                                },
+                                content: {
                                 VStack(alignment: .leading, spacing: 8) {
                                     PlaceholderTextEditor(
                                         placeholder: "可选：粘贴 ABC 乐谱（以 X: 开头）。YuE2 首次生成的乐谱可在任务详情页复制。",
                                         text: $vm.abc, minHeight: 120)
                                     Text("提供乐谱后将按谱编曲，适合二次编辑后重渲染。").font(.caption2).foregroundStyle(.tertiary)
                                 }
-                            } label: {
-                                Label(showABC ? "收起乐谱输入" : "使用已有 ABC 乐谱（可选）",
-                                      systemImage: showABC ? "chevron.up" : "chevron.down")
-                            }
+                                })
                         }
                     }
                 }
 
                 SectionCard(title: "高级") {
-                    Disclosure(isExpanded: $showAdvanced) {
+                    Disclosure(isExpanded: $showAdvanced,
+                        label: {
+                        Label(showAdvanced ? "收起高级选项" : "高级选项（种子 / Guidance）",
+                              systemImage: showAdvanced ? "chevron.up" : "chevron.down")
+                        },
+                        content: {
                         VStack(alignment: .leading, spacing: 10) {
                             HStack {
                                 Text("随机种子")
@@ -98,10 +105,7 @@ struct CreateSongView: View {
                             }
                             Text("种子相同则本次创作可复现；Guidance 控制提示遵循强度。").font(.caption2).foregroundStyle(.tertiary)
                         }
-                    } label: {
-                        Label(showAdvanced ? "收起高级选项" : "高级选项（种子 / Guidance）",
-                              systemImage: showAdvanced ? "chevron.up" : "chevron.down")
-                    }
+                        })
                 }
 
                 if let error = vm.errorMessage {

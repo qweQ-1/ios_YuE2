@@ -1,6 +1,7 @@
 import SwiftUI
 
 /// 全局装配：设置 + 客户端 + 播放器 + 本地历史，以及懒加载的全局 ViewModel。
+@MainActor
 public final class AppEnvironment: ObservableObject {
     public let settings: SettingsStore
     public let history: HistoryStore
