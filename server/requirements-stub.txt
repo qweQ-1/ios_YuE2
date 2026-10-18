@@ -1,0 +1,5 @@
+# Stub 演示模式最小依赖（不含 yue2-infer / torch —— 假引擎不需要它们）。
+# 用法：pip install -r requirements-stub.txt
+fastapi>=0.115
+uvicorn[standard]>=0.30
+soundfile==0.13.1
