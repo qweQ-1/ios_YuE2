@@ -47,6 +47,7 @@ class JobManager:
         self.keep_jobs = keep_jobs
         self.db_path = self.data_dir / "jobs.db"
         self.jobs_root = self.data_dir / "jobs"
+        self._db_lock = threading.RLock()
         self._pool: ThreadPoolExecutor | None = None
         self._pending: list[str] = []          # FIFO 队列（内存）
         self._pending_lock = threading.Lock()
@@ -86,7 +87,7 @@ class JobManager:
 
     def _recover(self) -> None:
         """重启恢复：未结束的任务标 failed，APP 侧可据此提示重新创作。"""
-        with self._db:
+        with self._db_lock, self._db:
             self._db.execute(
                 "UPDATE jobs SET status=?, error=?, updated_at=? WHERE status IN (?, ?)",
                 (FAILED, "服务器重启，任务中断；请重新提交", _utcnow(), RUNNING, QUEUED),
@@ -95,14 +96,16 @@ class JobManager:
     # ---------- 查询 ----------
 
     def get(self, job_id: str) -> dict | None:
-        row = self._db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
+        with self._db_lock:
+            row = self._db.execute("SELECT * FROM jobs WHERE id=?", (job_id,)).fetchone()
         return self._row_to_dict(row) if row else None
 
     def list(self, limit: int = 50) -> tuple[list[dict], int]:
-        total = self._db.execute("SELECT COUNT(*) AS c FROM jobs").fetchone()["c"]
-        rows = self._db.execute(
-            "SELECT * FROM jobs ORDER BY created_at DESC, id DESC LIMIT ?", (limit,)
-        ).fetchall()
+        with self._db_lock:
+            total = self._db.execute("SELECT COUNT(*) AS c FROM jobs").fetchone()["c"]
+            rows = self._db.execute(
+                "SELECT * FROM jobs ORDER BY created_at DESC, id DESC LIMIT ?", (limit,)
+            ).fetchall()
         return [self._row_to_dict(r) for r in rows], total
 
     @staticmethod
@@ -119,9 +122,10 @@ class JobManager:
         }
 
     def active_id(self) -> str | None:
-        row = self._db.execute(
-            "SELECT id FROM jobs WHERE status=? ORDER BY created_at DESC LIMIT 1", (RUNNING,)
-        ).fetchone()
+        with self._db_lock:
+            row = self._db.execute(
+                "SELECT id FROM jobs WHERE status=? ORDER BY created_at DESC LIMIT 1", (RUNNING,)
+            ).fetchone()
         return row["id"] if row else None
 
     def queue_depth(self) -> int:
@@ -141,14 +145,14 @@ class JobManager:
                 values.append(json.dumps(v, ensure_ascii=False))
             else:
                 values.append(v)
-        with self._db:
+        with self._db_lock, self._db:
             self._db.execute(f"UPDATE jobs SET {cols} WHERE id=?", (*values, job_id))
 
     def submit(self, params: dict) -> str:
         job_id = _short_job_id()
         now = _utcnow()
         progress = {"phase": "queued", "message": "排队中", "fraction": None, "tokens": 0}
-        with self._db:
+        with self._db_lock, self._db:
             self._db.execute(
                 "INSERT INTO jobs (id, status, created_at, updated_at, params, progress, error, result)"
                 " VALUES (?, ?, ?, ?, ?, ?, NULL, NULL)",
@@ -263,15 +267,16 @@ class JobManager:
     def _prune(self) -> None:
         """只保留最近 keep_jobs 个任务的产物。"""
         try:
-            rows = self._db.execute(
-                "SELECT id FROM jobs ORDER BY created_at DESC, id DESC LIMIT -1 OFFSET ?",
-                (self.keep_jobs,),
-            ).fetchall()
-            stale = [r["id"] for r in rows]
-            if not stale:
-                return
-            with self._db:
-                self._db.executemany("DELETE FROM jobs WHERE id=?", [(j,) for j in stale])
+            with self._db_lock:
+                rows = self._db.execute(
+                    "SELECT id FROM jobs ORDER BY created_at DESC, id DESC LIMIT -1 OFFSET ?",
+                    (self.keep_jobs,),
+                ).fetchall()
+                stale = [r["id"] for r in rows]
+                if not stale:
+                    return
+                with self._db:
+                    self._db.executemany("DELETE FROM jobs WHERE id=?", [(j,) for j in stale])
             for j in stale:
                 _rmtree(self.jobs_root / j)
         except Exception:  # noqa: BLE001

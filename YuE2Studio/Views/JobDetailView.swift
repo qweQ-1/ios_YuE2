@@ -6,7 +6,7 @@ struct JobDetailView: View {
     @ObservedObject var vm: JobDetailViewModel
     @EnvironmentObject private var environment: AppEnvironment
     @State private var showScore = false
-    @State private var shareURL: URL?
+    @State private var shareItem: ShareItem?
     @State private var downloadMessage: String?
     @State private var isDownloading = false
     @State private var showRetry = false
@@ -39,10 +39,8 @@ struct JobDetailView: View {
             vm.startPolling()
         }
         .onDisappear { vm.stopPolling() }
-        .sheet(isPresented: $shareURL.isNotNil()) {
-            if let shareURL {
-                ShareSheet(items: [shareURL])
-            }
+        .sheet(item: $shareItem) { item in
+            ShareSheet(items: [item.url])
         }
         .alert("下载失败", isPresented: .constant(downloadMessage != nil)) {
             Button("好") { downloadMessage = nil }
@@ -221,7 +219,7 @@ struct JobDetailView: View {
                 from: client.audioURL(id: vm.jobId),
                 headers: client.authHeaders(),
                 suggestedName: "YuE2-\(String(vm.jobId.prefix(8))).flac")
-            shareURL = local
+            shareItem = ShareItem(url: local)
         } catch let e as APIError {
             downloadMessage = e.message
         } catch {
@@ -230,11 +228,10 @@ struct JobDetailView: View {
     }
 }
 
-extension Binding where Value == URL? {
-    /// sheet(isPresented:) 需要 Bool，这里借「URL 是否有值」驱动。
-    fileprivate var isNotNil: Binding<Bool> {
-        Binding(get: { wrappedValue != nil }, set: { if !$0 { wrappedValue = nil } })
-    }
+/// 分享面板的 Identifiable 包装（sheet(item:) 要求 Identifiable）。
+struct ShareItem: Identifiable {
+    let url: URL
+    var id: String { url.absoluteString }
 }
 
 /// 系统分享面板。
