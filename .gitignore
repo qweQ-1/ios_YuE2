@@ -1,0 +1,29 @@
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+*.xcarchive
+*.ipa
+*.dSYM/
+
+# SwiftPM
+.build/
+.swiftpm/
+
+# XcodeGen 生成的工程（由 CI / 本地 xcodegen generate 生成，不入库）
+*.xcodeproj/
+
+# XcodeGen 生成的 Info.plist（由 project.yml 的 info 段生成）
+YuE2Studio/Info.plist
+
+# 服务器本地数据（生成的歌曲与任务库不入库）
+server/data/
+server/.venv/
+server/.env
+__pycache__/
+*.pyc
+.pytest_cache/
