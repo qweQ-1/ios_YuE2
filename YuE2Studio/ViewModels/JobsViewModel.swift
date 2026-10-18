@@ -26,7 +26,6 @@ public struct JobListItem: Identifiable, Equatable {
 }
 
 /// 任务列表 ViewModel：合并服务器数据与本地历史。
-@MainActor
 public final class JobsViewModel: ObservableObject {
     @Published public private(set) var items: [JobListItem] = []
     @Published public var isLoading = false
@@ -46,6 +45,7 @@ public final class JobsViewModel: ObservableObject {
 
     // MARK: 拉取与合并
 
+    @MainActor
     public func refresh() async {
         guard !isLoading else { return }
         isLoading = true
@@ -108,6 +108,7 @@ public final class JobsViewModel: ObservableObject {
         pollTask = nil
     }
 
+    @MainActor
     public func cancel(id: String) {
         Task { [weak self] in
             guard let self else { return }

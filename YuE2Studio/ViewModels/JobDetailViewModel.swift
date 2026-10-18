@@ -1,7 +1,6 @@
 import Foundation
 
 /// 任务详情 ViewModel：轮询进度、取消、拉乐谱、复用参数。
-@MainActor
 public final class JobDetailViewModel: ObservableObject {
     @Published public private(set) var detail: JobDetail?
     @Published public private(set) var score: String?
@@ -26,6 +25,7 @@ public final class JobDetailViewModel: ObservableObject {
 
     // MARK: 加载
 
+    @MainActor
     public func load() async {
         guard !isLoading else { return }
         isLoading = true
@@ -83,6 +83,7 @@ public final class JobDetailViewModel: ObservableObject {
         pollTask = nil
     }
 
+    @MainActor
     public func cancelJob() {
         Task { [weak self] in
             guard let self else { return }

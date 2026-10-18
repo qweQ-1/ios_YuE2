@@ -1,7 +1,6 @@
 import Foundation
 
 /// 创作表单 ViewModel。
-@MainActor
 public final class CreateSongViewModel: ObservableObject {
     @Published public var style: String = ""
     @Published public var lyrics: String = ""
@@ -75,6 +74,7 @@ public final class CreateSongViewModel: ObservableObject {
 
     // MARK: 提交
 
+    @MainActor
     public func submit() {
         guard !isSubmitting, let request = makeRequest() else { return }
         errorMessage = nil
