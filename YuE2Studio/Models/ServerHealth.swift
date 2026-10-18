@@ -39,6 +39,32 @@ public struct ServerHealth: Codable, Equatable {
         self.activeJob = activeJob
     }
 
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        status = try c.decodeIfPresent(String.self, forKey: .status) ?? "ok"
+        engine = try c.decodeIfPresent(EngineState.self, forKey: .engine) ?? .ready
+        engineMessage = try c.decodeIfPresent(String.self, forKey: .engineMessage) ?? ""
+        model = try c.decodeIfPresent(String.self, forKey: .model) ?? ""
+        device = try c.decodeIfPresent(String.self, forKey: .device) ?? ""
+        stub = try c.decodeIfPresent(Bool.self, forKey: .stub) ?? false
+        version = try c.decodeIfPresent(String.self, forKey: .version) ?? ""
+        queueDepth = try c.decodeIfPresent(Int.self, forKey: .queueDepth) ?? 0
+        activeJob = try c.decodeIfPresent(String.self, forKey: .activeJob)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(status, forKey: .status)
+        try c.encode(engine, forKey: .engine)
+        try c.encode(engineMessage, forKey: .engineMessage)
+        try c.encode(model, forKey: .model)
+        try c.encode(device, forKey: .device)
+        try c.encode(stub, forKey: .stub)
+        try c.encode(version, forKey: .version)
+        try c.encode(queueDepth, forKey: .queueDepth)
+        try c.encodeIfPresent(activeJob, forKey: .activeJob)
+    }
+
     /// 一句话状态摘要（设置页展示）。
     public var summaryText: String {
         switch engine {

@@ -21,12 +21,13 @@ public struct ABCParser {
                 title = String(line.dropFirst(2)).trimmingCharacters(in: .whitespaces)
                 continue
             }
-            // 段落标签：整行形如 [Verse] 或以 [ 开头并含 ]
-            if line.hasPrefix("[") {
-                if let end = line.firstIndex(of: "]") {
-                    let tag = String(line[line.index(after: line.startIndex)..<end])
-                    if !tag.isEmpty, !sections.contains(tag) { sections.append(tag) }
-                }
+            // 段落标签：行内任意位置的 [Verse] / [Chorus]（含 w:[Verse] 歌词行）
+            var scan = line
+            while let open = scan.firstIndex(of: "["),
+                  let close = scan[open...].firstIndex(of: "]") {
+                let tag = String(scan[scan.index(after: open)..<close])
+                if !tag.isEmpty, !sections.contains(tag) { sections.append(tag) }
+                scan = String(scan[scan.index(after: close)...])
             }
         }
         self.title = title

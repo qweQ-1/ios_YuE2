@@ -129,7 +129,8 @@ final class YuE2ClientTests: XCTestCase {
         } catch let e as APIError {
             if case .http(let status, let msg) = e {
                 XCTAssertEqual(status, 503)
-                XCTAssertEqual(msg, "服务器返回错误（HTTP 503）")
+                XCTAssertEqual(msg, "")  // 原始 message 为空
+                XCTAssertEqual(e.message, "服务器返回错误（HTTP 503）")  // 兜底文案
             } else {
                 XCTFail("错误类型不对：\(e)")
             }

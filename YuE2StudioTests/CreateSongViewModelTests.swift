@@ -34,6 +34,7 @@ final class CreateSongViewModelTests: XCTestCase {
         vm.seedText = "42"
         vm.guidanceText = "-1"
         XCTAssertEqual(vm.validationMessage(), "Guidance 只能是大于 0 的数字")
+        vm.guidanceText = "1.2"
         XCTAssertNil(vm.validationMessage())
     }
 

@@ -41,7 +41,7 @@ final class JobsViewModelTests: XCTestCase {
         let (vm, stub, _) = makeVM()
         stub.jobsResult = .failure(APIError.network("notConnectedToInternet"))
         await vm.refresh()
-        XCTAssertEqual(vm.errorMessage, "连接服务器失败：设备没有可用网络")
+        XCTAssertEqual(vm.errorMessage, "连接服务器失败：notConnectedToInternet")
         XCTAssertTrue(vm.items.isEmpty)
         XCTAssertFalse(vm.hasActive)
     }
