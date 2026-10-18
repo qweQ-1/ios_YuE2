@@ -1,7 +1,6 @@
 import SwiftUI
 
 /// 全局装配：设置 + 客户端 + 播放器 + 本地历史，以及懒加载的全局 ViewModel。
-@MainActor
 public final class AppEnvironment: ObservableObject {
     public let settings: SettingsStore
     public let history: HistoryStore
@@ -29,15 +28,15 @@ public final class AppEnvironment: ObservableObject {
     // MARK: - 全局 ViewModel（惰性、稳定实例）
 
     public lazy var createSongViewModel: CreateSongViewModel = {
-        CreateSongViewModel(clientProvider: { [weak self] in self?.client() ?? DeadClient() }, history: history)
+        CreateSongViewModel(clientProvider: { [weak self] in (self?.client() as YuE2Servicing?) ?? DeadClient() }, history: history)
     }()
 
     public lazy var jobsViewModel: JobsViewModel = {
-        JobsViewModel(clientProvider: { [weak self] in self?.client() ?? DeadClient() }, history: history)
+        JobsViewModel(clientProvider: { [weak self] in (self?.client() as YuE2Servicing?) ?? DeadClient() }, history: history)
     }()
 
     public func makeJobDetailViewModel(jobId: String) -> JobDetailViewModel {
-        JobDetailViewModel(jobId: jobId, clientProvider: { [weak self] in self?.client() ?? DeadClient() }, history: history)
+        JobDetailViewModel(jobId: jobId, clientProvider: { [weak self] in (self?.client() as YuE2Servicing?) ?? DeadClient() }, history: history)
     }
 }
 
