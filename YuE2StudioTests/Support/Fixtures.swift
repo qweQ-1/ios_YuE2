@@ -1,4 +1,5 @@
 import Foundation
+@testable import YuE2Studio
 
 /// JSON 样例构造器，VM 测试共享。
 enum Fixtures {
